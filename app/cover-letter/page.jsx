@@ -63,7 +63,7 @@ const CoverLetterBuilder = ({ initialLetter = "" }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-20 space-y-6 px-4">
+    <div className="max-w-4xl mx-auto mt-20 space-y-6 px-4 overflow-y-auto">
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-center">
         <h2 className="text-4xl font-extrabold bg-gradient-to-b from-neutral-200 to-neutral-500 bg-clip-text text-transparent">
