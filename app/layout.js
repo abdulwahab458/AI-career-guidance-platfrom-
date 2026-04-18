@@ -47,7 +47,7 @@ export default function RootLayout({ children }) {
           {/* footer */}
           <footer className="bg-gray-900 text-gray-300 py-4 text-center">
             <p className="text-sm">
-              Created with <span className="text-red-500">♥</span> by Casper
+              Created with <span className="text-red-500">♥</span> by Abdul Wahab
             </p>
             <p className="text-xs text-gray-500 mt-1">
               © {new Date().getFullYear()} All rights reserved.

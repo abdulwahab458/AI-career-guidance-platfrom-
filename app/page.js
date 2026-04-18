@@ -143,7 +143,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-neutral-200 dark:border-neutral-800 py-10 mt-16 w-full text-center text-sm text-neutral-500 dark:text-neutral-400">
-        © {new Date().getFullYear()} ResumeCraft — All rights reserved.
+        © {new Date().getFullYear()} Mentora — All rights reserved.
       </footer>
     </div>
   )
