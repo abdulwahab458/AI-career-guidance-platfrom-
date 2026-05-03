@@ -1,10 +1,11 @@
 
+"use client"
+
 import {
     SignInButton,
     SignUpButton,
-    SignedIn,
-    SignedOut,
     UserButton,
+    useUser,
 } from '@clerk/nextjs'
 import Link from 'next/link'
 import { Button } from './ui/button'
@@ -15,11 +16,11 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { checkUser } from '@/lib/checkUser'
 
 
-const Header = async() => {
-    await checkUser();
+const Header = () => {
+    const { isSignedIn } = useUser()
+
     return (
         <div className='flex justify-between mx-auto border-b-2 bg-gray-900/80 backdrop-blur-md w-full top-0 fixed z-50'>
             {/* logo  */}
@@ -36,7 +37,8 @@ const Header = async() => {
             </div>
             <div className="flex justify-center items-center p-4 gap-4 h-16">
                 <div className='flex gap-x-3'>
-                    <SignedIn>
+                    {isSignedIn ? (
+                        <>
                         <Link href={"/dashboard"}>
                             <Button variant="outline">
                                 <LayoutDashboard className='h-4 w-4' />
@@ -78,19 +80,22 @@ const Header = async() => {
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
-                    </SignedIn>
+                        </>
+                    ) : null}
                 </div>
-                <SignedOut>
+                {!isSignedIn ? (
+                    <>
                     <SignInButton />
                     <SignUpButton>
                         <button className="bg-[#6c47ff] text-ceramic-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer">
                             Sign Up
                         </button>
                     </SignUpButton>
-                </SignedOut>
-                <SignedIn>
+                    </>
+                ) : null}
+                {isSignedIn ? (
                     <UserButton />
-                </SignedIn>
+                ) : null}
             </div>
         </div>
     )
