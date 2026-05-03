@@ -189,7 +189,7 @@ const ResumeBuilder = ({ initialContent }) => {
             {/* Contact Info */}
             <Card>
               <CardContent className="space-y-4 p-6">
-                <h3 className="text-lg font-semibold">Contact Info</h3>
+                <h3 className="text-lg font-semibold">Contact Information</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input {...register("contactInfo.email")} placeholder="Email" type="email" />
                   <Input {...register("contactInfo.mobile")} placeholder="Phone" type="tel" />
