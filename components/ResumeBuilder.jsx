@@ -8,7 +8,6 @@ import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { resumeSchema } from "@/lib/schema"
 import useFetch from "./hooks/use-fetch"
-import { saveResume } from "@/actions/resume"
 import { Input } from "./ui/input"
 import { Textarea } from "./ui/textarea"
 import EntryForm from "./EntryForm"
@@ -19,6 +18,21 @@ import jsPDF from "jspdf"
 import { marked } from "marked"
 import { toast } from "sonner"
 import { Card, CardContent } from "@/components/ui/card"
+
+  // Call server API to save resume (client-safe)
+  const callSaveResume = async (content) => {
+    const res = await fetch('/api/resume/save', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+    })
+    if (!res.ok) {
+      const text = await res.text()
+      throw new Error(text || 'Failed to save resume')
+    }
+    return await res.json()
+  }
 
 const ResumeBuilder = ({ initialContent }) => {
   const [activeTab, setActiveTab] = useState("edit")
@@ -49,7 +63,7 @@ const ResumeBuilder = ({ initialContent }) => {
     fn: saveResumefn,
     data: saveResult,
     error: saveError,
-  } = useFetch(saveResume)
+  } = useFetch(callSaveResume)
 
   const formValues = watch()
 

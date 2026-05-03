@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import useFetch from "./hooks/use-fetch";
-import { generatequiz, saveQuizResult } from "@/actions/interview";
 import { Button } from "./ui/button";
 import {
   Card,
@@ -25,21 +24,45 @@ const Quiz = () => {
   const [answers, setAnswers] = useState([]);
   const [selected, setSelected] = useState(null);
 
-  // fetch hook for generating quiz
+  // fetch hook for generating quiz (calls API route)
+  const callGenerate = async () => {
+    const res = await fetch('/api/interview/generate', { method: 'POST', credentials: 'same-origin' });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || 'Failed to generate quiz');
+    }
+    const json = await res.json();
+    return json.questions || json;
+  };
+
   const {
     loading: generatingQuiz,
     fn: generateQuizfn,
     data: quizData,
     error,
-  } = useFetch(generatequiz);
+  } = useFetch(callGenerate);
 
-  // fetch hook for saving results
+  // fetch hook for saving results (calls API route)
+  const callSave = async (questions, answers, score) => {
+    const res = await fetch('/api/interview/save', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ questions, answers, score }),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || 'Failed to save quiz results');
+    }
+    return await res.json();
+  };
+
   const {
     loading: savingResult,
     fn: saveQuizResultsfn,
     data: resultData,
     setdata: setResultsData,
-  } = useFetch(saveQuizResult);
+  } = useFetch(callSave);
 
   
 
