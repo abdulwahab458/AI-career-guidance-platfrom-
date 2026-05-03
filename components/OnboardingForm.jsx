@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from 'next/navigation';
 import { industries } from "@/data/industries";
 import { Input } from "./ui/input";
@@ -61,6 +61,12 @@ const OnboardingForm = () => {
       });
       const result = await res.json();
 
+      if (res.status === 401 || /Unauthorized/i.test(result?.error || '')) {
+        toast.error('Please sign in to continue.');
+        router.push('/sign-in');
+        return;
+      }
+
       if (result?.updatedUser) {
         toast.success('Profile updated successfully!');
         router.push('/dashboard');
@@ -75,12 +81,7 @@ const OnboardingForm = () => {
     }
   };
 
-  useEffect(() => {
-    if (updateResult?.success && !updateLoading) {
-      toast.success('Profile updated successfully');
-      router.push('/dashboard');
-    }
-  }, [updateResult, updateLoading]);
+  // Removed stale effect that referenced removed `updateResult`/`updateLoading`.
 
 
   const watchIndustry = watch("industry");
