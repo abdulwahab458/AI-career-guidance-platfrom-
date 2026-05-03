@@ -5,13 +5,16 @@ import { redirect } from 'next/navigation';
 import React from 'react'
 
 const page = async () => {
-  const insights = await getIndustryInsight();
-
-
-  const { isOnboarded } = await getUserStatus();
-  if (!isOnboarded) {
+  const { isOnboarded, dbUnavailable } = await getUserStatus();
+  if (dbUnavailable || !isOnboarded) {
     redirect('/onboarding');
   }
+
+  const insights = await getIndustryInsight();
+  if (!insights) {
+    redirect('/onboarding');
+  }
+
   return (
     <div className='container mx-auto  mt-20'>
       <Dashboardcomp insights={insights}/>

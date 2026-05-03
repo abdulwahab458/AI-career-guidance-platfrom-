@@ -120,3 +120,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+.cover-letter-editor .w-md-editor,
+.cover-letter-editor .w-md-editor-content {
+  max-height: 70vh;
+}
+
+.cover-letter-editor .w-md-editor-text,
+.cover-letter-editor .w-md-editor-text-pre,
+.cover-letter-editor .w-md-editor-text-input,
+.cover-letter-editor .wmde-markdown {
+  max-height: 70vh;
+  overflow-y: auto;
+}

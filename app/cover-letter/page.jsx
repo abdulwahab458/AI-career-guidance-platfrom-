@@ -5,6 +5,7 @@ import { Download, FileText, Loader2, Monitor, Sparkles } from "lucide-react";
 import MDEditor from "@uiw/react-md-editor";
 import jsPDF from "jspdf";
 import { marked } from "marked";
+import PropTypes from "prop-types";
 import { toast } from "sonner";
 
 import useFetch from "@/components/hooks/use-fetch";
@@ -45,7 +46,7 @@ const CoverLetterBuilder = ({ initialLetter = "" }) => {
     try {
       const doc = new jsPDF({ unit: "mm", format: "a4" });
       const html = marked.parse(coverLetter || "");
-      const text = html.replace(/<[^>]+>/g, "");
+      const text = html.replaceAll(/<[^>]+>/g, "");
 
       const pageWidth = doc.internal.pageSize.getWidth();
       const margin = 10;
@@ -63,7 +64,7 @@ const CoverLetterBuilder = ({ initialLetter = "" }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-20 space-y-6 px-4 overflow-y-auto">
+    <div className="max-w-4xl mx-auto mt-20 space-y-6 px-4 pb-8">
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-center">
         <h2 className="text-4xl font-extrabold bg-gradient-to-b from-neutral-200 to-neutral-500 bg-clip-text text-transparent">
@@ -82,16 +83,18 @@ const CoverLetterBuilder = ({ initialLetter = "" }) => {
       <div className="border rounded-lg p-6 space-y-4 bg-card">
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-medium">Job Title</label>
+            <label htmlFor="jobTitle" className="text-sm font-medium">Job Title</label>
             <Input
+              id="jobTitle"
               value={jobTitle}
               onChange={(e) => setjobTitle(e.target.value)}
               placeholder="e.g., Frontend Developer"
             />
           </div>
           <div>
-            <label className="text-sm font-medium">Company Name</label>
+            <label htmlFor="companyName" className="text-sm font-medium">Company Name</label>
             <Input
+              id="companyName"
               value={companyName}
               onChange={(e) => setcompanyName(e.target.value)}
               placeholder="e.g., OpenAI"
@@ -100,8 +103,9 @@ const CoverLetterBuilder = ({ initialLetter = "" }) => {
         </div>
 
         <div>
-          <label className="text-sm font-medium">Job Description</label>
+          <label htmlFor="jobDescription" className="text-sm font-medium">Job Description</label>
           <Textarea
+            id="jobDescription"
             value={jobDescription}
             onChange={(e) => setjobDescription(e.target.value)}
             placeholder="Paste the job description here..."
@@ -109,8 +113,9 @@ const CoverLetterBuilder = ({ initialLetter = "" }) => {
         </div>
 
         <div>
-          <label className="text-sm font-medium">Your Resume Summary</label>
+          <label htmlFor="resumeSummary" className="text-sm font-medium">Your Resume Summary</label>
           <Textarea
+            id="resumeSummary"
             value={resumeSummary}
             onChange={(e) => setresumeSummary(e.target.value)}
             placeholder="Paste your professional summary here..."
@@ -156,17 +161,11 @@ const CoverLetterBuilder = ({ initialLetter = "" }) => {
       </div>
 
       {/* EDITOR / PREVIEW SECTION */}
-      <div
-        className="border rounded-lg p-4 "
-        style={{
-          minHeight: "600px",
-          overflowY: "auto", // 🔥 allows scrolling inside editor container
-        }}
-      >
+      <div className="cover-letter-editor border rounded-lg p-4 bg-white max-h-[80vh] overflow-y-auto">
         <MDEditor
           value={coverLetter}
           onChange={setcoverLetter}
-          height={500}
+          height={700}
           preview={mode}
           style={{
             background: "white",
@@ -178,3 +177,7 @@ const CoverLetterBuilder = ({ initialLetter = "" }) => {
 };
 
 export default CoverLetterBuilder;
+
+CoverLetterBuilder.propTypes = {
+  initialLetter: PropTypes.string,
+};

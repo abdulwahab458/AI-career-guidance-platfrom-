@@ -1,5 +1,5 @@
 "use server"
-import { db } from "@/lib/prisma";
+import { db, getDatabaseUnavailableMessage, isDatabaseUnavailableError } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
@@ -7,6 +7,58 @@ const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genai.getGenerativeModel({
     model: "gemini-2.5-flash",
 });
+
+function getFallbackInsights(industry) {
+  return {
+    industry,
+    salaryRanges: [],
+    growthRate: 0,
+    demandLevel: "MEDIUM",
+    topSkills: [],
+    marketOutlook: "NEUTRAL",
+    keyTrends: [],
+    recommendedSkills: [],
+    lastUpdated: new Date(),
+    nextUpdate: new Date(Date.now() + 24 * 60 * 60 * 1000),
+  };
+}
+
+async function findUserByClerkId(clerkUserId) {
+  try {
+    return await db.user.findUnique({ where: { clerkUserId } });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      console.error("Database unavailable in getIndustryInsight:", error);
+      return "__DB_UNAVAILABLE__";
+    }
+    throw error;
+  }
+}
+
+async function findStoredIndustryInsight(industry) {
+  try {
+    return await db.industryInsights.findUnique({ where: { industry } });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      console.error(getDatabaseUnavailableMessage(), error);
+      return null;
+    }
+    throw error;
+  }
+}
+
+function mapInsightsToPrisma(aiInsights) {
+  return {
+    salaryRanges: Array.isArray(aiInsights.salaryRanges) ? aiInsights.salaryRanges : [],
+    growthRate: Number(aiInsights.growthRate) || 0,
+    demandLevel: String(aiInsights.demandLevel || "MEDIUM").toUpperCase(),
+    topSkills: Array.isArray(aiInsights.topSkills) ? aiInsights.topSkills : [],
+    marketOutlook: String(aiInsights.marketOutlook || "NEUTRAL").toUpperCase(),
+    keyTrends: Array.isArray(aiInsights.keyTrends) ? aiInsights.keyTrends : [],
+    recommendedSkills: Array.isArray(aiInsights.recommendedSkills) ? aiInsights.recommendedSkills : [],
+    nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  };
+}
 
 export const generateAIInsights = async (industry) => {
     const prompt = `
@@ -31,7 +83,7 @@ export const generateAIInsights = async (industry) => {
 
     const result = await model.generateContent(prompt);
     const text = result.response.text();
-    const parsed = JSON.parse(text.replace(/```(?:json)?\n?/g, "").trim());
+    const parsed = JSON.parse(text.replaceAll(/```(?:json)?\n?/g, "").trim());
 
     // Explicitly map to match Prisma model
     return {
@@ -44,83 +96,52 @@ export const generateAIInsights = async (industry) => {
         recommendedSkills: parsed.recommendedSkills,
     };
 }
-// export async function getIndustryInsight() {
-//     const { userId } = await auth();
-//     if (!userId) throw new Error("Unauthorized");
-
-//     const user = await db.user.findUnique({ where: { clerkUserId: userId } });
-//     if (!user) throw new Error("User not found");
-
-//     if (!user.industryInsights) {
-//         const aiInsights = await generateAIInsights(user.industry);
-
-//         // Explicitly map keys to match Prisma model
-//         const fixedInsights = {
-//             salaryRanges: aiInsights.salaryRanges,
-//             growthRate: aiInsights.growthRate,
-//             demandLevel: aiInsights.demandLevel.toUpperCase(),
-//             topSkills: aiInsights.topSkills,
-//             marketOutlook: aiInsights.marketOutlook.toUpperCase() || "NEUTRAL",
-//             keyTrends: Array.isArray(aiInsights.keyTrends) ? aiInsights.keyTrends : [],
-//             recommendedSkills: aiInsights.recommendedSkills,
-//         };
-
-//         const industryInsight = await db.industryInsights.create({
-//             data: {
-//                 industry: user.industry,
-//                 ...fixedInsights,
-//                 nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-//             },
-//         });
-
-//         return industryInsight;
-//     }
-
-//     return user.industryInsights;
-// } 
-
-
-
-
-
-
 export async function getIndustryInsight() {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
-  const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+  const user = await findUserByClerkId(userId);
+  if (user === "__DB_UNAVAILABLE__") return null;
   if (!user) throw new Error("User not found");
+  if (!user.industry) return null;
 
-  // Generate AI insights before the upsert
+  // Prefer existing stored insights so dashboard can render even if AI provider is down.
+  const existingInsight = await findStoredIndustryInsight(user.industry);
+  if (existingInsight) {
+    return existingInsight;
+  }
+
+  // Generate AI insights only when no stored insight exists.
   let aiInsights;
   try {
     aiInsights = await generateAIInsights(user.industry);
   } catch (err) {
     console.error("AI generation failed:", err);
-    throw new Error("Failed to generate industry insights");
+    return getFallbackInsights(user.industry);
   }
 
   // Explicitly map keys to match Prisma schema
-  const fixedInsights = {
-    salaryRanges: aiInsights.salaryRanges,
-    growthRate: aiInsights.growthRate,
-    demandLevel: aiInsights.demandLevel.toUpperCase(),
-    topSkills: aiInsights.topSkills,
-    marketOutlook: aiInsights.marketOutlook.toUpperCase() || "NEUTRAL",
-    keyTrends: Array.isArray(aiInsights.keyTrends) ? aiInsights.keyTrends : [],
-    recommendedSkills: aiInsights.recommendedSkills,
-    nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-  };
+  const fixedInsights = mapInsightsToPrisma(aiInsights);
 
   // Use upsert to safely create or return existing record
-  const industryInsight = await db.industryInsights.upsert({
-    where: { industry: user.industry },
-    create: {
-      industry: user.industry,
-      ...fixedInsights,
-    },
-    update: {},
-  });
+  try {
+    const industryInsight = await db.industryInsights.upsert({
+      where: { industry: user.industry },
+      create: {
+        industry: user.industry,
+        ...fixedInsights,
+      },
+      update: {
+        ...fixedInsights,
+      },
+    });
 
-  return industryInsight;
+    return industryInsight;
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      console.error(getDatabaseUnavailableMessage(), error);
+      return getFallbackInsights(user.industry);
+    }
+    throw error;
+  }
 }
