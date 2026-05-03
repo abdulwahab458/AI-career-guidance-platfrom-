@@ -8,11 +8,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
 model User {
   id          String  @id @default(uuid())
   clerkUserId String  @unique
@@ -29,7 +24,7 @@ model User {
   //profile 
   bio         String?
   experience  Int?
-  skills      String[]
+  skills      Json?
   assessments Assessment[]
   resume      Resume[]
   coverLetter CoverLetter[]
@@ -40,7 +35,7 @@ model Assessment {
   userId         String
   user           User     @relation(fields: [userId], references: [id])
   quizscore      Float
-  questions      Json[]
+  questions      Json?
   category       String
   improvementTip String?
   createdAt      DateTime @default(now())
@@ -53,7 +48,7 @@ model Resume {
   id      String @id @default(cuid())
   userId  String @unique
   user    User   @relation(fields: [userId], references: [id])
-  content String @db.Text
+  content String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -76,13 +71,13 @@ model IndustryInsights {
   id                String      @id @default(cuid())
   industry          String      @unique
   users             User[]
-  salaryRanges      Json[] 
+  salaryRanges      Json?
   growthRate        Float
   demandLevel       DemandLevel 
-  topSkills         String[]
+  topSkills         Json?
   marketOutlook     MarketOutlook
-  keyTrends         String[]
-  recommendedSkills String[]
+  keyTrends         Json?
+  recommendedSkills Json?
   lastUpdated       DateTime    @default(now())
   nextUpdate        DateTime
 
