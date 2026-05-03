@@ -8,6 +8,18 @@ const model = genai.getGenerativeModel({
     model: "gemini-2.5-flash",
 });
 
+const industryInsightSelect = {
+  industry: true,
+  salaryRanges: true,
+  growthRate: true,
+  demandLevel: true,
+  topSkills: true,
+  marketOutlook: true,
+  keyTrends: true,
+  recommendedSkills: true,
+  lastUpdated: true,
+};
+
 function getFallbackInsights(industry) {
   return {
     industry,
@@ -25,7 +37,19 @@ function getFallbackInsights(industry) {
 
 async function findUserByClerkId(clerkUserId) {
   try {
-    return await db.user.findUnique({ where: { clerkUserId } });
+    return await db.user.findUnique({
+      where: { clerkUserId },
+      select: {
+        id: true,
+        clerkUserId: true,
+        email: true,
+        name: true,
+        imageUrl: true,
+        industry: true,
+        bio: true,
+        experience: true,
+      },
+    });
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       console.error("Database unavailable in getIndustryInsight:", error);
@@ -37,7 +61,10 @@ async function findUserByClerkId(clerkUserId) {
 
 async function findStoredIndustryInsight(industry) {
   try {
-    return await db.industryInsights.findUnique({ where: { industry } });
+    return await db.industryInsights.findUnique({
+      where: { industry },
+      select: industryInsightSelect,
+    });
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       console.error(getDatabaseUnavailableMessage(), error);
@@ -134,6 +161,7 @@ export async function getIndustryInsight() {
       update: {
         ...fixedInsights,
       },
+      select: industryInsightSelect,
     });
 
     return industryInsight;

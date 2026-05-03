@@ -11,7 +11,10 @@ export async function generateCoverLetter({ jobTitle, companyName, jobDescriptio
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
-  const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+  const user = await db.user.findUnique({
+    where: { clerkUserId: userId },
+    select: { id: true, clerkUserId: true, industry: true },
+  });
   if (!user) throw new Error("User not found");
 
   const prompt = `

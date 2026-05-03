@@ -13,7 +13,10 @@ export async function saveResume(content) {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+    const user = await db.user.findUnique({
+        where: { clerkUserId: userId },
+        select: { id: true, clerkUserId: true, industry: true },
+    });
     if (!user) throw new Error("User not found");
 
     try {
@@ -40,7 +43,10 @@ export async function getresume() {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+    const user = await db.user.findUnique({
+        where: { clerkUserId: userId },
+        select: { id: true, clerkUserId: true, industry: true },
+    });
     if (!user) throw new Error("User not found");
 
     return await db.resume.findUnique({
@@ -54,7 +60,10 @@ export async function improvewithai({ current, type }) {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+    const user = await db.user.findUnique({
+        where: { clerkUserId: userId },
+        select: { id: true, clerkUserId: true, industry: true },
+    });
     if (!user) throw new Error("User not found");
     const enhancedprompt = `
     As an expert resume writer, improve the following ${type} description for a ${user.industry} professional.

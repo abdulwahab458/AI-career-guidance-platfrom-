@@ -10,17 +10,47 @@ const model = genai.getGenerativeModel({
     model: "gemini-2.5-flash",
 });
 
+async function getUserSkills(clerkUserId) {
+    const rows = await db.$queryRaw`
+        SELECT skills
+        FROM "User"
+        WHERE "clerkUserId" = ${clerkUserId}
+        LIMIT 1
+    `;
+
+    const value = rows?.[0]?.skills;
+    if (Array.isArray(value)) return value;
+
+    if (typeof value === "string") {
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return value
+                .split(",")
+                .map((skill) => skill.trim())
+                .filter(Boolean);
+        }
+    }
+
+    return [];
+}
+
 export async function generatequiz() {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+    const user = await db.user.findUnique({
+        where: { clerkUserId: userId },
+        select: { id: true, clerkUserId: true, industry: true },
+    });
     if (!user) throw new Error("User not found");
+    const skills = await getUserSkills(userId);
 
     try {
         const prompt = `
   Generate 10 technical interview questions for a ${user.industry}
-  professional${user.skills?.length ? ` with expertise in ${user.skills.join(", ")}` : ""}.
+    professional${skills.length ? ` with expertise in ${skills.join(", ")}` : ""}.
   
   Each question should be multiple choice with 4 options.
 
@@ -68,7 +98,10 @@ export async function saveQuizResult(questions, answers, score) {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+    const user = await db.user.findUnique({
+        where: { clerkUserId: userId },
+        select: { id: true, clerkUserId: true, industry: true },
+    });
     if (!user) throw new Error("User not found");
 
     const questionResults = questions.map((q, index) => ({
@@ -133,7 +166,10 @@ export async function getAssesment() {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+    const user = await db.user.findUnique({
+        where: { clerkUserId: userId },
+        select: { id: true, clerkUserId: true, industry: true },
+    });
     if (!user) throw new Error("User not found");
 
     try {

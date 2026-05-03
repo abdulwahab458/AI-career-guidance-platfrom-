@@ -10,7 +10,19 @@ export async function updateUser(data) {
 
     let user;
     try {
-        user = await db.user.findUnique({ where: { clerkUserId: userId } });
+        user = await db.user.findUnique({
+            where: { clerkUserId: userId },
+            select: {
+                id: true,
+                clerkUserId: true,
+                email: true,
+                name: true,
+                imageUrl: true,
+                industry: true,
+                bio: true,
+                experience: true,
+            },
+        });
     } catch (error) {
         if (isDatabaseUnavailableError(error)) {
             return { success: false, dbUnavailable: true, error: getDatabaseUnavailableMessage() };
@@ -86,6 +98,16 @@ export async function getUserStatus() {
     try {
         let user = await db.user.findUnique({
             where: { clerkUserId: userId },
+            select: {
+                id: true,
+                clerkUserId: true,
+                email: true,
+                name: true,
+                imageUrl: true,
+                industry: true,
+                bio: true,
+                experience: true,
+            },
         });
 
         // ✅ Auto-create the user if missing
@@ -96,6 +118,16 @@ export async function getUserStatus() {
                     clerkUserId: userId,
                     email: clerkUser.emailAddresses[0]?.emailAddress || "",
                     name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim(),
+                },
+                select: {
+                    id: true,
+                    clerkUserId: true,
+                    email: true,
+                    name: true,
+                    imageUrl: true,
+                    industry: true,
+                    bio: true,
+                    experience: true,
                 },
             });
         }
