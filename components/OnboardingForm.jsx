@@ -5,10 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { onboardingSchema } from "@/lib/schema";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -25,8 +23,7 @@ import { useRouter } from 'next/navigation';
 import { industries } from "@/data/industries";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import useFetch from "./hooks/use-fetch";
-import { updateUser } from "@/actions/user";
+// removed unused useFetch to avoid Server Action call from client
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -35,12 +32,7 @@ const OnboardingForm = () => {
   const router = useRouter()
   const [Loading, setLoading] = useState(false)
 
-  const {
-    loading: updateLoading,
-    fn: updatefunction,
-    data: updateResult,
-
-  } = useFetch(updateUser);
+  
   const {
     register,
     handleSubmit,
@@ -52,35 +44,28 @@ const OnboardingForm = () => {
   });
 
 
-  // const onSubmit = async (values) => {
-  //   try {
-  //     const formattedIndustry = `${values.industry}-${values.subIndustry
-  //       .toLowerCase()
-  //       .replace(/ /g, "-")}`;
-  //     updatefunction({
-  //       ...values,
-  //       industry: formattedIndustry,
-  //     })
-  //   } catch (error) {
-  //     console.log("Onboarding Error", error)
-  //   }
-  //   console.log(values)
-  // }
+  
 
   const onSubmit = async (values) => {
     try {
       setLoading(true)
       const formattedIndustry = `${values.industry}-${values.subIndustry
         .toLowerCase()
-        .replace(/ /g, "-")}`;
+        .replaceAll(" ", "-")}`;
 
-      const result = await updateUser({ ...values, industry: formattedIndustry });
+      const res = await fetch('/api/onboarding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ ...values, industry: formattedIndustry }),
+      });
+      const result = await res.json();
 
       if (result?.updatedUser) {
-        toast.success("Profile updated successfully!");
-        router.push("/dashboard");
+        toast.success('Profile updated successfully!');
+        router.push('/dashboard');
       } else {
-        toast.error("Something went wrong.");
+        toast.error('Something went wrong.');
       }
     } catch (error) {
       console.error("Onboarding Error", error);
