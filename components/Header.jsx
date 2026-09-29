@@ -8,18 +8,10 @@ import {
     useUser,
 } from '@clerk/nextjs'
 import Link from 'next/link'
-import { Button } from './ui/button'
-import { ChevronDown, FileText, GraduationCap, LayoutDashboard, Pen, PenBox, Stars } from 'lucide-react'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 
 const Header = () => {
-    const { isSignedIn } = useUser()
+    const { isLoaded, isSignedIn } = useUser()
 
     return (
         <div className='flex justify-between mx-auto border-b-2 bg-gray-900/80 backdrop-blur-md w-full top-0 fixed z-50'>
@@ -35,65 +27,20 @@ const Header = () => {
                     </p>
                 </Link>
             </div>
-            <div className="flex justify-center items-center p-4 gap-4 h-16">
-                <div className='flex gap-x-3'>
-                    {isSignedIn ? (
-                        <>
-                        <Link href={"/dashboard"}>
-                            <Button variant="outline">
-                                <LayoutDashboard className='h-4 w-4' />
-                                <span className='hidden md:block'>
-                                    Explore Dashboard
-
-                                </span>
-                            </Button>
-                        </Link>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button>
-                                    <Stars className='h-4 w-4' />
-                                    <span className='hidden md:block'>Tools</span>
-                                    <ChevronDown />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                                <DropdownMenuItem>
-                                    <Link href={"/resume"} className='flex items-center gap-2'>
-                                        <FileText className='h-4 w-4' />
-                                        <span >
-                                            Resume Builder</span>
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <Link href={"/cover-letter"} className='flex items-center gap-2'>
-                                        <PenBox className='h-4 w-4' />
-                                        <span >
-                                            Cover Letter</span>
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <Link href={"/interprep"} className='flex items-center gap-2'>
-                                        <GraduationCap className='h-4 w-4' />
-                                        <span >
-                                            InterView Preparation</span>
-                                    </Link>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        </>
-                    ) : null}
-                </div>
-                {!isSignedIn ? (
+            <div className="flex justify-center items-center p-4 gap-3 h-16">
+                {!isLoaded ? (
+                    <div aria-hidden="true" className="h-10 w-24" />
+                ) : !isSignedIn ? (
                     <>
                     <SignInButton />
                     <SignUpButton>
-                        <button className="bg-[#6c47ff] text-ceramic-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer">
+                        <button className="cursor-pointer rounded-full bg-[#6c47ff] px-4 py-2.5 text-sm font-medium text-white sm:px-5 sm:text-base">
                             Sign Up
                         </button>
                     </SignUpButton>
                     </>
                 ) : null}
-                {isSignedIn ? (
+                {isLoaded && isSignedIn ? (
                     <UserButton />
                 ) : null}
             </div>
