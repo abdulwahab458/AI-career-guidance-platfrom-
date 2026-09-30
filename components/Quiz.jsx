@@ -41,7 +41,7 @@ const Quiz = () => {
     data: quizData,
     error,
   } = useFetch(callGenerate);
-
+  // hooks
   // fetch hook for saving results (calls API route)
   const callSave = async (questions, answers, score) => {
     const res = await fetch('/api/interview/save', {
