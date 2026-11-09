@@ -10,6 +10,7 @@ const applicationRoutes = ["/dashboard", "/roadmap", "/resume", "/cover-letter",
 const AppShell = ({ children }) => {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const isLanding = pathname === "/";
   const showAppNavigation = applicationRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 
   useEffect(() => {
@@ -22,13 +23,15 @@ const AppShell = ({ children }) => {
     <>
       <Header />
       {showAppNavigation && <AppSidebar open={sidebarOpen} onToggle={() => setSidebarOpen((isOpen) => !isOpen)} onClose={() => setSidebarOpen(false)} />}
-      <main className={`min-h-screen transition-[padding] duration-300 ${showAppNavigation && sidebarOpen ? "lg:pl-72" : ""}`}>
+      <main className={`min-h-screen transition-[padding] duration-300 ${isLanding ? "bg-[#07080d]" : ""} ${showAppNavigation && sidebarOpen ? "lg:pl-72" : ""}`}>
         {children}
       </main>
-      <footer className={`bg-gray-900 py-4 text-center text-gray-300 transition-[padding] duration-300 ${showAppNavigation && sidebarOpen ? "lg:pl-72" : ""}`}>
-        <p className="text-sm">Created with <span className="text-red-500">♥</span> by Abdul Wahab</p>
-        <p className="mt-1 text-xs text-gray-500">© {new Date().getFullYear()} All rights reserved.</p>
-      </footer>
+      {!isLanding && (
+        <footer className={`bg-gray-900 py-4 text-center text-gray-300 transition-[padding] duration-300 ${showAppNavigation && sidebarOpen ? "lg:pl-72" : ""}`}>
+          <p className="text-sm">Created with <span className="text-red-500">♥</span> by Abdul Wahab</p>
+          <p className="mt-1 text-xs text-gray-500">© 2026 All rights reserved.</p>
+        </footer>
+      )}
     </>
   );
 };
