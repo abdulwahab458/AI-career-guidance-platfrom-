@@ -10,8 +10,34 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Card, CardContent } from "@/components/ui/card";
+import { ArrowUpRight, BriefcaseBusiness, CheckCircle2, Compass, Sparkles } from "lucide-react";
+
+const SalaryTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+
+  return (
+    <div className="min-w-44 rounded-xl border border-white/30 bg-slate-950/85 p-3 text-white shadow-2xl shadow-slate-950/25 backdrop-blur-xl dark:border-white/15 dark:bg-slate-900/90">
+      <p className="mb-2 border-b border-white/15 pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">
+        {label}
+      </p>
+      <div className="space-y-1.5">
+        {payload.map(({ name, value, color }) => (
+          <div key={name} className="flex items-center justify-between gap-5 text-sm">
+            <span className="flex items-center gap-2 text-slate-300">
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+              {name}
+            </span>
+            <span className="font-semibold tabular-nums text-white">
+              ${Number(value).toLocaleString()}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const Dashboardcomp = ({ insights }) => {
   const {
@@ -31,123 +57,87 @@ const Dashboardcomp = ({ insights }) => {
     setFormattedDate(new Date(insights.lastUpdated).toLocaleDateString());
   }, [insights.lastUpdated]);
 
+  const displayIndustry = industry.replace(/-/g, " ");
+  const metrics = [
+    { label: "Growth rate", value: `${growthRate}%`, note: "Year over year", icon: ArrowUpRight, tone: "text-emerald-500" },
+    { label: "Demand level", value: demandLevel, note: "Hiring activity", icon: BriefcaseBusiness, tone: "text-sky-500" },
+    { label: "Market outlook", value: marketOutlook, note: "Near-term signal", icon: Compass, tone: "text-amber-500" },
+  ];
+  const insightSections = [
+    { title: "Top skills", items: topSkills, icon: CheckCircle2, tone: "text-emerald-500" },
+    { title: "Key trends", items: keyTrends, icon: Compass, tone: "text-sky-500" },
+    { title: "Recommended next", items: recommendedSkills, icon: Sparkles, tone: "text-amber-500" },
+  ];
+
   return (
-    <div className="px-6 py-10 space-y-12 bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 min-h-screen text-neutral-100">
-      {/* HEADER */}
-      <motion.div
-        initial={{ opacity: 0, y: -15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-center"
-      >
-        <h1 className="text-5xl leading-tight tracking-tighter font-bold bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent drop-shadow-lg">
-          {industry.replace(/-/g, " ").toUpperCase()} Insights
-        </h1>
-        {formattedDate && (
-          <p className="text-neutral-400 mt-2 text-sm">
-            Updated on {formattedDate}
-          </p>
-        )}
-      </motion.div>
+    <div className="min-h-[calc(100vh-4rem)] bg-[radial-gradient(circle_at_top_right,_rgba(14,165,233,0.12),_transparent_35%),linear-gradient(135deg,_hsl(var(--background)),_hsl(var(--muted)/0.45))] px-4 py-6 text-foreground sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl space-y-6">
+        <motion.header
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+          className="flex flex-col gap-4 border-b border-border/70 pb-6 sm:flex-row sm:items-end sm:justify-between"
+        >
+          <div>
+            <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-600 dark:text-sky-400"><Sparkles className="h-3.5 w-3.5" /> Market intelligence</p>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{displayIndustry} insights</h1>
+            <p className="mt-2 max-w-xl text-sm text-muted-foreground">A focused view of the signals shaping your next career move.</p>
+          </div>
+          {formattedDate && <p className="shrink-0 text-xs text-muted-foreground">Updated {formattedDate}</p>}
+        </motion.header>
 
-      {/* METRICS SUMMARY */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.6 }}
-        className="grid grid-cols-1 sm:grid-cols-3 gap-6"
-      >
-        {[
-          { label: "Growth Rate", value: `${growthRate}%`, color: "text-green-400" },
-          { label: "Demand Level", value: demandLevel, color: "text-blue-400" },
-          { label: "Market Outlook", value: marketOutlook, color: "text-yellow-400" },
-        ].map((metric, i) => (
-          <motion.div
-            key={i}
-            whileHover={{ scale: 1.03 }}
-            transition={{ type: "spring", stiffness: 200 }}
-          >
-            <Card className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800 hover:border-neutral-700 transition-all">
-              <CardContent className="p-6 text-center">
-                <p className="text-neutral-400 text-sm tracking-wide">
-                  {metric.label}
-                </p>
-                <h3 className={`text-3xl font-bold mt-2 ${metric.color}`}>
-                  {metric.value}
-                </h3>
+        <motion.section
+          initial="hidden"
+          animate="show"
+          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08 } } }}
+          className="grid gap-3 md:grid-cols-3"
+        >
+          {metrics.map(({ label, value, note, icon: Icon, tone }) => (
+            <motion.div key={label} variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }} whileHover={{ y: -3 }} transition={{ duration: 0.25 }}>
+              <Card className="h-full border-border/70 bg-card/80 shadow-sm backdrop-blur transition-shadow hover:shadow-md">
+                <CardContent className="flex items-center justify-between p-4">
+                  <div><p className="text-xs font-medium text-muted-foreground">{label}</p><p className={`mt-1 text-2xl font-bold ${tone}`}>{value}</p><p className="mt-1 text-xs text-muted-foreground">{note}</p></div>
+                  <span className={`rounded-lg bg-muted p-2.5 ${tone}`}><Icon className="h-5 w-5" /></span>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </motion.section>
+
+        <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.45 }}>
+          <Card className="border-border/70 bg-card/80 shadow-sm backdrop-blur">
+            <CardContent className="p-4 sm:p-5">
+              <div className="mb-3 flex items-end justify-between gap-4"><div><h2 className="text-lg font-semibold">Salary landscape</h2><p className="text-xs text-muted-foreground">Typical compensation range by role</p></div><span className="hidden text-xs text-muted-foreground sm:block">USD / year</span></div>
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={salaryRanges} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+                  <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeDasharray="4 4" />
+                  <XAxis dataKey="role" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    content={<SalaryTooltip />}
+                    cursor={{ fill: "rgba(14, 165, 233, 0.08)" }}
+                    wrapperStyle={{ outline: "none", zIndex: 20 }}
+                  />
+                  <Bar dataKey="min" fill="#94a3b8" name="Minimum" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="median" fill="#0ea5e9" name="Median" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="max" fill="#10b981" name="Maximum" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </motion.section>
+
+        <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.45 }} className="grid gap-3 md:grid-cols-3">
+          {insightSections.map(({ title, items, icon: Icon, tone }) => (
+            <Card key={title} className="border-border/70 bg-card/80 shadow-sm transition-shadow hover:shadow-md">
+              <CardContent className="p-4">
+                <h3 className="flex items-center gap-2 text-sm font-semibold"><Icon className={`h-4 w-4 ${tone}`} />{title}</h3>
+                <ul className="mt-4 space-y-2.5">{items.map((item) => <li key={item} className="text-sm leading-5 text-muted-foreground">{item}</li>)}</ul>
               </CardContent>
             </Card>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* SALARY CHART */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.6 }}
-      >
-        <Card className="bg-neutral-900/70 backdrop-blur-lg border border-neutral-800 hover:border-neutral-700 transition-all">
-          <CardContent className="p-6">
-            <h2 className="text-2xl font-semibold mb-5 text-neutral-200">
-              Salary Overview
-            </h2>
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart
-                data={salaryRanges}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                <XAxis dataKey="role" tick={{ fill: "#aaa" }} />
-                <YAxis tick={{ fill: "#aaa" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#111",
-                    border: "1px solid #333",
-                  }}
-                  labelStyle={{ color: "#fff" }}
-                />
-                <Bar dataKey="median" fill="#60a5fa" name="Median Salary" />
-                <Bar dataKey="max" fill="#10b981" name="Max Salary" />
-                <Bar dataKey="min" fill="#ef4444" name="Min Salary" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* SKILLS & TRENDS GRID */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.6 }}
-        className="grid grid-cols-1 md:grid-cols-3 gap-6"
-      >
-        {[ 
-          { title: "Top Skills", items: topSkills },
-          { title: "Key Trends", items: keyTrends },
-          { title: "Recommended Skills", items: recommendedSkills },
-        ].map((section, i) => (
-          <motion.div
-            key={i}
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 180 }}
-          >
-            <Card className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800 hover:border-neutral-700 transition-all">
-              <CardContent className="p-5">
-                <h3 className="text-xl font-semibold mb-3 text-neutral-200">
-                  {section.title}
-                </h3>
-                <ul className="space-y-2 text-neutral-400 list-disc list-inside text-sm">
-                  {section.items.map((item, j) => (
-                    <li key={j}>{item}</li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </motion.div>
+          ))}
+        </motion.section>
+      </div>
     </div>
   );
 };

@@ -33,6 +33,7 @@ model User {
   assessments Assessment[]
   resume      Resume[]
   coverLetter CoverLetter[]
+  careerRoadmaps CareerRoadmap[]
 }
 
 model Assessment {
@@ -70,6 +71,21 @@ model CoverLetter {
   updatedAt      DateTime @updatedAt
 
   @@index([userId])
+}
+
+model CareerRoadmap {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  title      String
+  targetRole String
+  country    String?
+  region     String?
+  content    Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId, updatedAt])
 }
 
 model IndustryInsights {

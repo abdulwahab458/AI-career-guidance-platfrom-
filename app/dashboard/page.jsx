@@ -16,7 +16,7 @@ const page = async () => {
   }
 
   return (
-    <div className='container mx-auto  mt-20'>
+    <div className='pt-16'>
       <Dashboardcomp insights={insights}/>
     </div>
   )
