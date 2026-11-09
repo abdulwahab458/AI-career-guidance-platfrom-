@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "Mentora",
-  description: "AI powered career guidnance platform",
+  description: "AI-powered career guidance for roadmaps, resumes, cover letters, interview practice, and job matching.",
 };
 
 export default async function RootLayout({ children }) {
@@ -33,6 +33,7 @@ export default async function RootLayout({ children }) {
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
+            suppressHydrationWarning
           >
             <AppShell>{children}</AppShell>
             <Toaster richColors/>
